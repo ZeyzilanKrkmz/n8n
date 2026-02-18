@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n_dev
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=admin123
+      - N8N_ENCRYPTION_KEY=my_secure_dev_key_123 # Flow'ları export ederken şifreleme için önemli
+      - TZ=Europe/Istanbul
+      # Kendi node'larını geliştirdiğinde n8n'e nerede olduklarını söylüyoruz:
+      - N8N_CUSTOM_EXTENSIONS=/home/node/custom-nodes 
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+      # Kendi repo yapındaki klasörü içeri bağlıyoruz:
+      - ../n8n-custom-nodes:/home/node/custom-nodes
+      - ./n8n_data:/home/node/.n8n-files
