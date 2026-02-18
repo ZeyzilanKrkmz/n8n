@@ -1,0 +1,94 @@
+{
+    "nodes": [
+        {
+            "parameters": {},
+            "type": "n8n-nodes-base.manualTrigger",
+            "typeVersion": 1,
+            "position": [
+                -544,
+                -32
+            ],
+            "id": "997b2df0-b95f-4113-af2d-ac325bd14b9b",
+            "name": "When clicking ‘Execute workflow’"
+        },
+        {
+            "parameters": {
+                "fileSelector": "/home/node/.n8n-files/students.csv",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.readWriteFile",
+            "typeVersion": 1.1,
+            "position": [
+                -336,
+                -32
+            ],
+            "id": "056c63ec-459d-4451-9da1-c9a5a6df0c22",
+            "name": "Read/Write Files from Disk"
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "n8n-nodes-base.extractFromFile",
+            "typeVersion": 1.1,
+            "position": [
+                -128,
+                -32
+            ],
+            "id": "8c4ebbf1-9299-42e6-8e8a-13302554d76a",
+            "name": "Extract from File"
+        },
+        {
+            "parameters": {
+                "jsCode": "const uniqueStudents={};\n\nfor (const item of items){\n  const id=item.json.ogrenci_no;\n  const currentRecordDate=new Date(item.json.kayit_tarihi);\n\n\n  if (!uniqueStudents[id] || new Date(uniqueStudents[id].json.kayit_tarihi)<currentRecordDate){\n    uniqueStudents[id]=item;\n  }\n}\n\nreturn Object.values(uniqueStudents);"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                80,
+                -32
+            ],
+            "id": "0f4a94c4-9ce6-4cc1-aa71-9f501e6883e8",
+            "name": "Code in JavaScript"
+        }
+    ],
+    "connections": {
+        "When clicking ‘Execute workflow’": {
+            "main": [
+                [
+                    {
+                        "node": "Read/Write Files from Disk",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Read/Write Files from Disk": {
+            "main": [
+                [
+                    {
+                        "node": "Extract from File",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Extract from File": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {},
+    "meta": {
+        "instanceId": "a00fa9d039d70ae421de5a59ede2698d6cb92299b8c331c28ed9d21b3b54f466"
+    }
+}
