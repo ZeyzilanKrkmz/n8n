@@ -1,0 +1,292 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "hours"
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.3,
+            "position": [
+                -336,
+                0
+            ],
+            "id": "4294f320-f03f-4ea8-b6ac-66096a507f41",
+            "name": "Schedule Trigger"
+        },
+        {
+            "parameters": {
+                "url": "https://www.idefix.com/name-it-nkfmelbourne-unisex-cocuk-sisme-mont-p-6130419",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "User-Agent",
+                            "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                        }
+                    ]
+                },
+                "options": {
+                    "response": {
+                        "response": {
+                            "responseFormat": "text"
+                        }
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                -128,
+                0
+            ],
+            "id": "4017ac30-095d-408e-8cc5-548d72f1d08d",
+            "name": "HTTP Request"
+        },
+        {
+            "parameters": {
+                "operation": "extractHtmlContent",
+                "extractionValues": {
+                    "values": [
+                        {
+                            "key": "fiyat",
+                            "cssSelector": "div.price"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.html",
+            "typeVersion": 1.2,
+            "position": [
+                64,
+                -160
+            ],
+            "id": "c38e8d64-2907-43fb-9231-6f7c22250e04",
+            "name": "HTML"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "cafbbb02-ac1a-43be-846c-834ea8160d22",
+                            "name": "temizFiyat",
+                            "value": "={{ parseFloat($json.fiyat.replace(/[^\\d,]/g, '').replace(',', '.')) }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                -192,
+                -160
+            ],
+            "id": "51606e8e-4af6-4ff5-8316-cbabb5ffbbf5",
+            "name": "Edit Fields"
+        },
+        {
+            "parameters": {
+                "jsCode": "// HTTP Request'ten gelen tüm sayfa verisini alıyoruz\nconst html = $input.all()[0].json.data;\n\n// Sayfa kaynağı içinde \"sellingPrice\":1234 veya \"price\":1234 kalıplarını arıyoruz\nconst priceMatch = html.match(/\"sellingPrice\"\\s?:\\s?(\\d+\\.?\\d*)/) || \n                   html.match(/\"price\"\\s?:\\s?(\\d+\\.?\\d*)/);\n\nif (priceMatch) {\n    // Fiyatı bulduk, içindeki rakamı sayı formatına çeviriyoruz\n    return {\n        fiyat: parseFloat(priceMatch[1]),\n        durum: \"Başarılı\"\n    };\n} else {\n    // Eğer fiyat bulunamazsa sistemi durdurmamak için 0 dönüyoruz\n    return {\n        fiyat: 0,\n        durum: \"Fiyat sayfa kaynağında bulunamadı\"\n    };\n}"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                96,
+                0
+            ],
+            "id": "8476fe66-6b15-418e-a0c5-4d42d089ec44",
+            "name": "Code in JavaScript"
+        },
+        {
+            "parameters": {
+                "operation": "append",
+                "documentId": {
+                    "__rl": true,
+                    "value": "1GfF_tzSbPrHz9PXg4ulL9eGyUAWCuYl2PQbN9QTFNJc",
+                    "mode": "list",
+                    "cachedResultName": "fiyatTablosu",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GfF_tzSbPrHz9PXg4ulL9eGyUAWCuYl2PQbN9QTFNJc/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": "gid=0",
+                    "mode": "list",
+                    "cachedResultName": "Sayfa1",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GfF_tzSbPrHz9PXg4ulL9eGyUAWCuYl2PQbN9QTFNJc/edit#gid=0"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "fiyat": "={{ $node[\"Code\"].json[\"fiyat\"] }}"
+                    },
+                    "matchingColumns": [],
+                    "schema": [
+                        {
+                            "id": "fiyat",
+                            "displayName": "fiyat",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "durum",
+                            "displayName": "durum",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.7,
+            "position": [
+                304,
+                0
+            ],
+            "id": "12f16c8e-986b-4ad9-8e4f-44094d270f42",
+            "name": "Append row in sheet",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "PjAYkXGNY6h0wAHQ",
+                    "name": "Google Sheets account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "append",
+                "documentId": {
+                    "__rl": true,
+                    "value": "1GfF_tzSbPrHz9PXg4ulL9eGyUAWCuYl2PQbN9QTFNJc",
+                    "mode": "list",
+                    "cachedResultName": "fiyatTablosu",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GfF_tzSbPrHz9PXg4ulL9eGyUAWCuYl2PQbN9QTFNJc/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": "gid=0",
+                    "mode": "list",
+                    "cachedResultName": "Sayfa1",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GfF_tzSbPrHz9PXg4ulL9eGyUAWCuYl2PQbN9QTFNJc/edit#gid=0"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "fiyat": "={{ $json.fiyat }}",
+                        "durum": "={{ $json.durum }}"
+                    },
+                    "matchingColumns": [],
+                    "schema": [
+                        {
+                            "id": "fiyat",
+                            "displayName": "fiyat",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "durum",
+                            "displayName": "durum",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.7,
+            "position": [
+                400,
+                144
+            ],
+            "id": "80362573-259b-47ce-be0b-d311a9df63d7",
+            "name": "Append row in sheet1",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "PjAYkXGNY6h0wAHQ",
+                    "name": "Google Sheets account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Schedule Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "HTTP Request",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "HTTP Request": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "HTML": {
+            "main": [
+                []
+            ]
+        },
+        "Code in JavaScript": {
+            "main": [
+                [
+                    {
+                        "node": "Append row in sheet",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Append row in sheet1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Append row in sheet": {
+            "main": [
+                []
+            ]
+        }
+    },
+    "pinData": {},
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "53ec82619176e82e251ec1e9b9530ca81e0153c8b3f0212d352bf934333d82f0"
+    }
+}
