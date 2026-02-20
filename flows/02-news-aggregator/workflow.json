@@ -1,0 +1,194 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "triggerAtHour": 9
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.3,
+            "position": [
+                -656,
+                0
+            ],
+            "id": "0e7a0367-2057-4630-b19c-77f1f3958656",
+            "name": "Schedule Trigger"
+        },
+        {
+            "parameters": {
+                "url": "https://newsapi.org/v2/top-headlines?country=us&apiKey=7249ea7402fc4c37a799e8339d416d20",
+                "options": {
+                    "response": {
+                        "response": {
+                            "responseFormat": "json"
+                        }
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                -448,
+                0
+            ],
+            "id": "37591d68-483c-4e94-b3fa-e19744bdb8ff",
+            "name": "HTTP Request",
+            "retryOnFail": true,
+            "waitBetweenTries": 5000
+        },
+        {
+            "parameters": {
+                "fieldToSplitOut": "article",
+                "include": "allOtherFields",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.splitOut",
+            "typeVersion": 1,
+            "position": [
+                -240,
+                0
+            ],
+            "id": "d041384f-b36c-4514-ad35-ee186042ebef",
+            "name": "Split Out"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "30403227-b843-4958-bfec-394fbaa9e0b3",
+                            "leftValue": "AI",
+                            "rightValue": "Tech",
+                            "operator": {
+                                "type": "string",
+                                "operation": "equals",
+                                "name": "filter.operator.equals"
+                            }
+                        },
+                        {
+                            "id": "12e9a9cb-a1c9-42d1-9a24-a4c8d33d7519",
+                            "leftValue": "n8n",
+                            "rightValue": "workflow",
+                            "operator": {
+                                "type": "string",
+                                "operation": "equals",
+                                "name": "filter.operator.equals"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.filter",
+            "typeVersion": 2.3,
+            "position": [
+                -32,
+                0
+            ],
+            "id": "453efc02-96ea-439c-8152-36c8f4a4d037",
+            "name": "Filter"
+        },
+        {
+            "parameters": {
+                "rules": {
+                    "values": [
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 3
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "{{ $json.source.name}}",
+                                        "rightValue": "",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "contains"
+                                        },
+                                        "id": "76668971-3364-4c6b-a2c6-6d1a48ba9876"
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.switch",
+            "typeVersion": 3.4,
+            "position": [
+                208,
+                0
+            ],
+            "id": "45139f94-61fe-41ac-8556-67230151a146",
+            "name": "Switch"
+        }
+    ],
+    "connections": {
+        "Schedule Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "HTTP Request",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "HTTP Request": {
+            "main": [
+                [
+                    {
+                        "node": "Split Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Split Out": {
+            "main": [
+                [
+                    {
+                        "node": "Filter",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Filter": {
+            "main": [
+                [
+                    {
+                        "node": "Switch",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {},
+    "meta": {
+        "instanceId": "53ec82619176e82e251ec1e9b9530ca81e0153c8b3f0212d352bf934333d82f0"
+    }
+}

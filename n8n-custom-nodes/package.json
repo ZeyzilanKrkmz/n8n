@@ -1,0 +1,24 @@
+{
+  "name": "n8n-nodes-baun-validator",
+  "version": "1.0.0",
+  "description": "BAUN Email Validator for n8n",
+  "keywords": [
+    "n8n-community-node-package"
+  ],
+  "license": "MIT",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "n8n": {
+    "nodes": [
+      "dist/nodes/BaunValidator/BaunValidator.node.js"
+    ]
+  },
+  "devDependencies": {
+    "n8n-core": "^0.137.0",
+    "n8n-workflow": "^0.137.0",
+    "typescript": "^4.5.4"
+  }
+}
