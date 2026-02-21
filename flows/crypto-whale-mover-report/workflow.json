@@ -1,0 +1,187 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "triggerAtHour": 9
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.3,
+            "position": [
+                -528,
+                48
+            ],
+            "id": "8f50e880-0b33-480d-bb1b-217789e93d1e",
+            "name": "Schedule Trigger"
+        },
+        {
+            "parameters": {
+                "url": "https://api.binance.com/api/v3/ticker/24hr",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                -320,
+                48
+            ],
+            "id": "68eadfca-21e3-43a4-82e5-386cf099880d",
+            "name": "HTTP Request"
+        },
+        {
+            "parameters": {
+                "jsCode": "const inputData=$input.all();\n\nif(!inputData || inputData.length===0) return [];\n\nconst items=inputData[0].json;\n\nif(!Array.isArray(items)){\n  return [{error: \"gelen veri bir liste değil!\"}];\n}\n\nconst topMovers=items\n.filter(i=>i.symbol && i.symbol.endsWith('USDT'))\n.map(i=>({\n  symbol:i.symbol.replace('USDT',''),\n  price:parseFloat(i.lastPrice).toFixed(4),\n  change:parseFloat(i.priceChangePercent).toFixed(2),\n  volume:Math.round(parseFloat(i.quoteVolume))\n}))\n.sort((a,b)=> b.change-a.change)\n.slice(0,10);\n\n\nreturn topMovers;"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -112,
+                48
+            ],
+            "id": "d115430b-f167-46bd-b2e2-5f1557f44700",
+            "name": "Code in JavaScript"
+        },
+        {
+            "parameters": {
+                "jsCode": "let text = `🚀 <b>Günlük Kripto Raporu</b>\\n`;\ntext += `<i>Son 24 saatin en çok artanları:</i>\\n\\n`;\ntext += `<pre>`;\ntext += `Coin      | Fiyat    | Değişim\\n`;\ntext += `----------|----------|--------\\n`;\n\nfor (const item of $input.all()) {\n  // Verilerin varlığından emin olalım, yoksa boş string kullanalım\n  const rawSymbol = item.json.symbol || 'N/A';\n  const rawPrice = item.json.price || '0.00';\n  const rawChange = item.json.change || '0';\n\n  // padEnd kullanmadan önce String'e çevirelim (Güvenli yöntem)\n  const symbol = String(rawSymbol).padEnd(10, ' ');\n  const price = String(rawPrice).padEnd(8, ' ');\n  const emoji = parseFloat(rawChange) >= 0 ? '📈' : '📉';\n  const change = (parseFloat(rawChange) >= 0 ? '+' : '') + rawChange + '%';\n  \n  text += `${symbol}| ${price} | ${change} ${emoji}\\n`;\n}\n\ntext += `</pre>`;\n\nreturn { htmlReport: text };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                128,
+                48
+            ],
+            "id": "97879c20-3e57-4176-9405-4caa66e123b4",
+            "name": "Code in JavaScript1"
+        },
+        {
+            "parameters": {
+                "chatId": "6380920217",
+                "text": "={{ $json.htmlReport }}",
+                "replyMarkup": "=",
+                "forceReply": {},
+                "replyKeyboardOptions": {},
+                "replyKeyboardRemove": {},
+                "additionalFields": {
+                    "parse_mode": "HTML"
+                }
+            },
+            "type": "n8n-nodes-base.telegram",
+            "typeVersion": 1.2,
+            "position": [
+                352,
+                48
+            ],
+            "id": "df455978-02c8-471d-b160-7b528368d168",
+            "name": "Send a text message",
+            "webhookId": "09ddd538-d73b-4c0d-940e-060d481747f2",
+            "credentials": {
+                "telegramApi": {
+                    "id": "cyQuEBD6nW9y6NEZ",
+                    "name": "Telegram account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "content": "binance verisine bağlandı.",
+                "height": 80,
+                "width": 150
+            },
+            "type": "n8n-nodes-base.stickyNote",
+            "position": [
+                -480,
+                224
+            ],
+            "typeVersion": 1,
+            "id": "e6707dca-be8a-447e-b211-ba3ea41bfced",
+            "name": "Sticky Note"
+        },
+        {
+            "parameters": {
+                "content": "data cleaning: 2000+ satırlık ham veri filtrelendi, en değerli 10 adet veri ayıklandı.",
+                "height": 128,
+                "width": 150
+            },
+            "type": "n8n-nodes-base.stickyNote",
+            "position": [
+                -272,
+                240
+            ],
+            "typeVersion": 1,
+            "id": "e5c99c8b-a2c8-4214-9fcd-cd77ce19b06a",
+            "name": "Sticky Note1"
+        },
+        {
+            "parameters": {
+                "content": "html kısıtlamalrını aşarak <pre> etiketiyle mobil için tablo tasarlandı.",
+                "height": 112,
+                "width": 150
+            },
+            "type": "n8n-nodes-base.stickyNote",
+            "position": [
+                112,
+                208
+            ],
+            "typeVersion": 1,
+            "id": "e55e34af-9ff5-4808-95de-bacd64a87a74",
+            "name": "Sticky Note2"
+        }
+    ],
+    "connections": {
+        "Schedule Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "HTTP Request",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "HTTP Request": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript1": {
+            "main": [
+                [
+                    {
+                        "node": "Send a text message",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {},
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "53ec82619176e82e251ec1e9b9530ca81e0153c8b3f0212d352bf934333d82f0"
+    }
+}
