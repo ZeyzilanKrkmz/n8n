@@ -1,0 +1,181 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "v1/data-ingest",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                -448,
+                0
+            ],
+            "id": "6fdbb0fb-771d-42b4-b6a5-f5cc5123091a",
+            "name": "Webhook",
+            "webhookId": "8e843aa9-e2b2-4811-806c-e28447b0aab2"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "1a30559c-63d2-4045-a29b-e3ce32e94525",
+                            "name": "userName",
+                            "value": "={{ $json.body.user_name.toLowerCase().trim() }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "b3647035-1af8-4258-b91a-7e208a61573a",
+                            "name": "normalizationDate",
+                            "value": "={{ $now }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "04c0f89b-ad28-44ff-8065-299aad200471",
+                            "name": "receivedId",
+                            "value": "={{  $json.body.id}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                -48,
+                0
+            ],
+            "id": "5822f25f-06ba-4f9c-b324-b61dea59afec",
+            "name": "Edit Fields"
+        },
+        {
+            "parameters": {
+                "jsCode": "const headers = $items()[0].json.headers;\n// Küçük-büyük harf duyarlılığını ve Türkçe karakter riskini bitirelim\nconst apiKey = headers['x-api-key']; \n\nif (apiKey !== \"Muhendis123\") {\n  throw new Error(\"Yetkisiz erişim: Key yanlış!\");\n}\n\nreturn $items();"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -240,
+                0
+            ],
+            "id": "f01d56fb-7a42-461b-af5d-d2e69d5030e3",
+            "name": "Code in JavaScript"
+        },
+        {
+            "parameters": {
+                "operation": "append",
+                "documentId": {
+                    "__rl": true,
+                    "value": "1Ncw0uUmIgrL_cHd3IiAUcMMADpqASt4FKLPIB3HzH1k",
+                    "mode": "list",
+                    "cachedResultName": "forN8N",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Ncw0uUmIgrL_cHd3IiAUcMMADpqASt4FKLPIB3HzH1k/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": "gid=0",
+                    "mode": "list",
+                    "cachedResultName": "Sayfa1",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Ncw0uUmIgrL_cHd3IiAUcMMADpqASt4FKLPIB3HzH1k/edit#gid=0"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "userName": "={{ $json.userName }}",
+                        "receivedId": "={{ $json.receivedId }}",
+                        "normalizationDate": "={{ $json.normalizationDate }}"
+                    },
+                    "matchingColumns": [],
+                    "schema": [
+                        {
+                            "id": "userName",
+                            "displayName": "userName",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "receivedId",
+                            "displayName": "receivedId",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "normalizationDate",
+                            "displayName": "normalizationDate",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.7,
+            "position": [
+                192,
+                0
+            ],
+            "id": "8726d1ce-eb1f-4e74-8288-bb16ed70d4ab",
+            "name": "Append row in sheet",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "PjAYkXGNY6h0wAHQ",
+                    "name": "Google Sheets account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Edit Fields",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Code in JavaScript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Edit Fields": {
+            "main": [
+                [
+                    {
+                        "node": "Append row in sheet",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Append row in sheet": {
+            "main": [
+                []
+            ]
+        }
+    },
+    "pinData": {},
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "53ec82619176e82e251ec1e9b9530ca81e0153c8b3f0212d352bf934333d82f0"
+    }
+}
