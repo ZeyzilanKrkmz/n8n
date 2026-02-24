@@ -1,0 +1,233 @@
+{
+    "nodes": [
+        {
+            "parameters": {},
+            "type": "n8n-nodes-base.manualTrigger",
+            "typeVersion": 1,
+            "position": [
+                -672,
+                0
+            ],
+            "id": "8e93f8ff-55d1-49ff-bf02-f8bb2e0d1014",
+            "name": "When clicking ‘Execute workflow’"
+        },
+        {
+            "parameters": {
+                "url": "={{ $json.Link }}",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "User-Agent",
+                            "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                -288,
+                0
+            ],
+            "id": "1a17b032-b0df-4878-bdaa-47552b0caadf",
+            "name": "HTTP Request"
+        },
+        {
+            "parameters": {
+                "mode": "runOnceForEachItem",
+                "jsCode": "// Sayfa kaynağındaki tüm metni alıyoruz\nconst html = $node[\"HTTP Request\"].json[\"data\"]; \n\n// 1. Fiyatı Bul (Regex ile: \"discountedPrice\":182.18 gibi yapıları arar)\nconst priceMatch = html.match(/\"discountedPrice\"\\s*:\\s*(\\d+(\\.\\d+)?)/) || \n                   html.match(/\"customerPrice\"\\s*:\\s*(\\d+(\\.\\d+)?)/) ||\n                   html.match(/\"salePrice\"\\s*:\\s*(\\d+(\\.\\d+)?)/);\n\n// 2. İsmi Bul (meta tag içindeki temiz başlığı alır)\nconst nameMatch = html.match(/<title>(.*?)<\\/title>/);\n\nlet urunAdi = \"İsim Bulunamadı\";\nif (nameMatch && nameMatch[1]) {\n    // İdefix başlığındaki gereksiz kısımları temizle\n    urunAdi = nameMatch[1].split('|')[0].split('-')[0].replace('fiyatı, yorumları ve özellikleri', '').trim();\n}\n\nlet fiyat = 0;\nif (priceMatch && priceMatch[1]) {\n    fiyat = parseFloat(priceMatch[1]);\n}\n\nreturn {\n    Urun_Adi: urunAdi,\n    Fiyat: fiyat,\n    Tarih: new Date().toLocaleString('tr-TR')\n};"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                112,
+                0
+            ],
+            "id": "38615a19-46b7-4089-abfd-f1dd914d7504",
+            "name": "Code in JavaScript"
+        },
+        {
+            "parameters": {
+                "authentication": "serviceAccount",
+                "documentId": {
+                    "__rl": true,
+                    "value": "1q9QChUOfet_ge05DLZYmWiK1U-Y5O6tfz1nU9CnobJ0",
+                    "mode": "list",
+                    "cachedResultName": "Linkler",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1q9QChUOfet_ge05DLZYmWiK1U-Y5O6tfz1nU9CnobJ0/edit?usp=drivesdk"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": "gid=0",
+                    "mode": "list",
+                    "cachedResultName": "Sayfa1",
+                    "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1q9QChUOfet_ge05DLZYmWiK1U-Y5O6tfz1nU9CnobJ0/edit#gid=0"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.7,
+            "position": [
+                -496,
+                0
+            ],
+            "id": "66a55134-8415-4483-83fb-bb5db130b57a",
+            "name": "Get row(s) in sheet1",
+            "credentials": {
+                "googleApi": {
+                    "id": "hLMFmapsHUBEAKIR",
+                    "name": "Google Sheets account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "authentication": "serviceAccount",
+                "operation": "append",
+                "documentId": {
+                    "__rl": true,
+                    "value": "https://docs.google.com/spreadsheets/d/1wup-4DpRefVv6HY_ItB2qrek_w4-yWQBCeN-zwLkwTU/edit?usp=sharing",
+                    "mode": "url"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": "0",
+                    "mode": "id"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "Tarih": "={{ $json.Tarih }}",
+                        "Urun_Adi": "={{ $json.Urun_Adi }}",
+                        "Fiyat": "={{ $json.Fiyat }}"
+                    },
+                    "matchingColumns": [],
+                    "schema": [
+                        {
+                            "id": "Tarih",
+                            "displayName": "Tarih",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Urun_Adi",
+                            "displayName": "Urun_Adi",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "Fiyat",
+                            "displayName": "Fiyat",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.7,
+            "position": [
+                272,
+                0
+            ],
+            "id": "b79c4b2c-1728-4f3b-aec2-704583bffb9c",
+            "name": "Append row in sheet",
+            "credentials": {
+                "googleApi": {
+                    "id": "hLMFmapsHUBEAKIR",
+                    "name": "Google Sheets account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "amount": 2
+            },
+            "type": "n8n-nodes-base.wait",
+            "typeVersion": 1.1,
+            "position": [
+                -96,
+                48
+            ],
+            "id": "d56a27e2-75a4-4a1a-a727-ed3119ea9f94",
+            "name": "Wait",
+            "webhookId": "dc555e6e-2a44-4fba-8ccb-a2c94332f7f9"
+        }
+    ],
+    "connections": {
+        "When clicking ‘Execute workflow’": {
+            "main": [
+                [
+                    {
+                        "node": "Get row(s) in sheet1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "HTTP Request": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript": {
+            "main": [
+                [
+                    {
+                        "node": "Append row in sheet",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get row(s) in sheet1": {
+            "main": [
+                [
+                    {
+                        "node": "HTTP Request",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Wait": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {},
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "e4fd62bc2ff887cc4dc39c8d34843bfbd00c9f3618c6248d0b0bea6abedaf256"
+    }
+}
