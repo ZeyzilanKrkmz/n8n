@@ -1,0 +1,157 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+            "typeVersion": 1.4,
+            "position": [
+                -352,
+                16
+            ],
+            "id": "6b8f569d-46be-486a-914e-16e6ee691946",
+            "name": "When chat message received",
+            "webhookId": "874831d5-7f83-4967-b8d1-088fafc3eabc"
+        },
+        {
+            "parameters": {
+                "operation": "createFromText",
+                "content": "={{ $json.text }}",
+                "name": "={ $json.chatInput }}_analiz.txt",
+                "driveId": {
+                    "__rl": true,
+                    "value": "=",
+                    "mode": "id"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "=1C7aYIrmSSshFimt8SzLLMhCuCwIi7G2a",
+                    "mode": "id"
+                },
+                "options": {
+                    "convertToGoogleDocument": true
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                224,
+                -32
+            ],
+            "id": "298d77e3-d18d-47f4-b4fd-4e433a9e4708",
+            "name": "Create file from text",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "r2KHn9Qkjmtfv8OB",
+                    "name": "Google Drive account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "model": "=gemma:2b",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+            "typeVersion": 1,
+            "position": [
+                -240,
+                192
+            ],
+            "id": "67beb846-7604-475f-bc4f-4f8999013158",
+            "name": "Ollama Chat Model",
+            "credentials": {
+                "ollamaApi": {
+                    "id": "92ZnZX7Syer6WHin",
+                    "name": "Ollama account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "=Çıktıyı incelediğimde tipik bir \"küçük model (2B)\" vakasıyla karşı karşıya olduğumuzu görüyorum. Gemma 2B teknik terimleri anlıyor ama verdiğin \"Senior Mühendis\" rolünü tam olarak sırtlayamıyor. Yazı biraz fazla genel ve \"bu doğrudur, şu iyidir\" gibi tekrara düşen cümlelerle dolu.\n\nBir Senior Mühendis olarak bu çıktıyı nasıl iyileştirebileceğimize dair stratejim şu:\n\n1. Sorun: Model Çok Yüzeysel Kalıyor\nGemma 2B, RAM dostudur ama \"akıl yürütme\" kapasitesi düşüktür. JSONPath ile jq arasındaki farkı sormuşsun ama o sadece JSON'ın ne olduğunu anlatıp geçmiş.\n\n2. Çözüm: Prompt (Talimat) Mühendisliği\nModeli değiştiremiyorsak, ona verdiğin talimatı (Prompt) çok daha katı ve detaylı hale getirmeliyiz. n8n içindeki Prompt kısmını şu şekilde güncellemeyi dene:\n\nYeni Prompt Önerisi:\n\"Sen bir Senior Yazılım Mühendisisin. Senden '{{ $json.chatInput }}' konusu hakkında teknik bir inceleme yazmanı istiyorum.\nKritik Kurallar:\n\n'Bu iyidir, bu doğrudur' gibi içi boş cümleler kurma.\n\nJSONPath ve jq arasındaki farkı; birinin 'query language' diğerinin 'command-line processor' olması üzerinden teknik olarak açıkla.\n\nKod bloğunda sadece basit bir JSON değil, iç içe geçmiş (nested) bir yapı ve o yapıdan veri çeken bir sorgu örneği ver.\n\nPerformans kısmında bellek yönetimi (memory overhead) ve CPU kullanımı terimlerini kullan.",
+                "messages": {
+                    "messageValues": [
+                        {
+                            "type": "AIMessagePromptTemplate",
+                            "message": "={{ $json.chatInput }}"
+                        }
+                    ]
+                },
+                "batching": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1.9,
+            "position": [
+                -160,
+                -48
+            ],
+            "id": "e96e116e-fbd6-45a9-b1f9-95e2669c74a9",
+            "name": "Basic LLM Chain"
+        },
+        {
+            "parameters": {},
+            "type": "n8n-nodes-base.manualTrigger",
+            "typeVersion": 1,
+            "position": [
+                -544,
+                -32
+            ],
+            "id": "9424619c-cd72-4ba2-83ef-3f5845d02338",
+            "name": "When clicking ‘Execute workflow’"
+        }
+    ],
+    "connections": {
+        "When chat message received": {
+            "main": [
+                [
+                    {
+                        "node": "Basic LLM Chain",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Ollama Chat Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Basic LLM Chain",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Basic LLM Chain": {
+            "main": [
+                [
+                    {
+                        "node": "Create file from text",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "When clicking ‘Execute workflow’": {
+            "main": [
+                [
+                    {
+                        "node": "Basic LLM Chain",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {},
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "e4fd62bc2ff887cc4dc39c8d34843bfbd00c9f3618c6248d0b0bea6abedaf256"
+    }
+}
