@@ -1,0 +1,200 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "weeks",
+                            "triggerAtHour": 9
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.3,
+            "position": [
+                -544,
+                -16
+            ],
+            "id": "56cca10f-3fd2-4fe4-945c-266d951323f3",
+            "name": "Schedule Trigger"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://api.tavily.com/search",
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "api_key",
+                            "value": "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"
+                        },
+                        {
+                            "name": "query",
+                            "value": "latest research papers on Edge AI and Machine Learning 2025 2026"
+                        },
+                        {
+                            "name": "search_depth",
+                            "value": "advanced"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                -352,
+                16
+            ],
+            "id": "3ab5a6f6-ff34-4165-9e4a-802897864188",
+            "name": "HTTP Request"
+        },
+        {
+            "parameters": {
+                "jsCode": "// gelen arraydeki her öğenin tarihini kontrol et. Eğer bugün ile yayın arasında fark 7 günden azsa bu ögeyi bir sonraki düğüme gönder.\nconst items=$input.all();\nconst now=new Date();\nconst sevenDaysAgo=new Date();\n\nsevenDaysAgo.setDate(now.getDate()-7);\n\nconst filteredItems=items.filter(item=>{\n  const publishedDate=new Date(item.json.published_date||item.json.created_at ||now);\n  return publishedDate>=sevenDaysAgo;\n});\n\nreturn filteredItems;\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -144,
+                16
+            ],
+            "id": "243d9043-999c-42c7-8cce-170f1abe3cc1",
+            "name": "Code in JavaScript"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "=Sen uzman bir Senior Yazılım Mühendisi ve teknik içerik yazarısın. \n\nAşağıdaki JSON verisinden gelen teknik içeriği analiz et ve bir mühendis özeti çıkar:\n\nBAŞLIK: \" + $json.title + \"\nİÇERİK: \" + $json.content + \"\n\nLütfen bu içeriği bir Bilgisayar Mühendisi perspektifiyle şu formatta özetle:\n\n## 🔍 Teknik Problem ve Kapsam\n(Bu içerik hangi spesifik sorunu çözüyor? Örn: Edge AI optimizasyonu, siber güvenlik vb.)\n\n## 🛠️ Kullanılan Teknolojiler\n(İçerikte geçen teknik kavramları listele: QML, XAI, GenAI, Vision Models vb.)\n\n## 💡 Mühendislik Değerlendirmesi\n(Bu gelişmenin sektördeki etkisi nedir? Kaynak kısıtlı sistemlerdeki uygulanabilirliği hakkında kısa bir yorum yap.)\n\nDİL: Türkçe ve teknik terminolojiye sadık kalarak yaz.",
+                "batching": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1.9,
+            "position": [
+                0,
+                -96
+            ],
+            "id": "6a452b95-7eac-409b-9ebe-4d34b195e9ee",
+            "name": "Basic LLM Chain"
+        },
+        {
+            "parameters": {
+                "model": "llama3.2:1b",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+            "typeVersion": 1,
+            "position": [
+                224,
+                80
+            ],
+            "id": "78c07208-f6a1-4dc3-b9d3-2d931e7db553",
+            "name": "Ollama Chat Model",
+            "credentials": {
+                "ollamaApi": {
+                    "id": "92ZnZX7Syer6WHin",
+                    "name": "Ollama account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "createFromText",
+                "content": "={{ $json.text }}",
+                "name": "={{ $now.format('YYYY-MM-DD') }}_Haftalık_rapor.docx",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "1C7aYIrmSSshFimt8SzLLMhCuCwIi7G2a",
+                    "mode": "list",
+                    "cachedResultName": "MyBlogContents",
+                    "cachedResultUrl": "https://drive.google.com/drive/folders/1C7aYIrmSSshFimt8SzLLMhCuCwIi7G2a"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                368,
+                -96
+            ],
+            "id": "9e82f71e-1104-4770-b4e0-5a9314ce1fba",
+            "name": "Create file from text",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "WDuv3mhlCQB0q5MU",
+                    "name": "Google Drive account 3"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Schedule Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "HTTP Request",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "HTTP Request": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript": {
+            "main": [
+                [
+                    {
+                        "node": "Basic LLM Chain",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Basic LLM Chain": {
+            "main": [
+                [
+                    {
+                        "node": "Create file from text",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Ollama Chat Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Basic LLM Chain",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {},
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "e4fd62bc2ff887cc4dc39c8d34843bfbd00c9f3618c6248d0b0bea6abedaf256"
+    }
+}
